@@ -1,0 +1,19 @@
+{
+  "name": "fairy-tale",
+  "version": "1.0.0",
+  "description": "Web based on SPA for display and make your own stories with map integration.",
+  "private": true,
+  "scripts": {
+    "serve": "webpack serve --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack --config webpack.dev.js"
+  },
+  "author": "Reyhan Al Farel",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1",
+    "webpack-merge": "^6.0.1"
+  }
+}
