@@ -1,4 +1,8 @@
-API_KEY=your_map_service_api_key_here
-Student Name: Reyhan Al Farel
-Course: Belajar Pengembangan Web Intermediate
-Submission Date: 8 Mei 2025
+API_KEY             = Saya menggunakan OpenStreetMap CDN
+Nama                : Reyhan Al Farel
+Kursus              : Belajar Pengembangan Web Intermediate
+Tanggal Submission  : 9 Mei 2025
+
+Login Dicoding API
+Email : farel@gmail.com
+pass : aduh1234
