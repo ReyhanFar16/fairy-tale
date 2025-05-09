@@ -1,5 +1,6 @@
 const path = require("path");
 const config = require("./webpack.config");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { merge } = require("webpack-merge");
 
 module.exports = merge(config, {
@@ -10,4 +11,9 @@ module.exports = merge(config, {
     assetModuleFilename: "img/[hash][ext]",
     clean: true,
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: "main.[contenthash].css",
+    }),
+  ],
 });
