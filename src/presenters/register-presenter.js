@@ -11,7 +11,6 @@ class RegisterPresenter {
     this.#view.render();
     this.#view.setupEventListeners();
 
-    // Redirect if already logged in
     if (AuthService.isLoggedIn()) {
       window.location.hash = "#/";
     }

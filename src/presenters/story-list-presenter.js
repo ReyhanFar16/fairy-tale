@@ -36,21 +36,17 @@ class StoryListPresenter {
 
   filterStories(query) {
     if (!query) {
-      // If query is empty, show all stories
       this.#view.updateStoriesList(this.#allStories);
       return;
     }
 
     const queryLowerCase = query.toLowerCase();
 
-    // Add null checks before calling toLowerCase()
     const filteredStories = this.#allStories.filter((story) => {
-      // Check if story.description exists before calling toLowerCase()
       const descriptionMatch =
         story.description &&
         story.description.toLowerCase().includes(queryLowerCase);
 
-      // Check if story.name exists before calling toLowerCase()
       const nameMatch =
         story.name && story.name.toLowerCase().includes(queryLowerCase);
 

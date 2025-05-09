@@ -20,7 +20,6 @@ class AddStoryPresenter {
     this.#view.render();
     this.#view.setupEventListeners();
 
-    // Setup map setelah DOM dirender
     setTimeout(() => {
       this.#view.setupMapView();
     }, 100);
@@ -49,7 +48,6 @@ class AddStoryPresenter {
   }
 
   async openCamera() {
-    // Create modal for camera
     const modal = document.createElement("div");
     modal.className = "camera-modal";
     modal.innerHTML = `
@@ -69,7 +67,6 @@ class AddStoryPresenter {
     const closeButton = document.getElementById("close-camera");
     const canvas = document.getElementById("photo-canvas");
 
-    // Start camera
     const cameraStarted = await this.#mediaStream.startCamera(video);
 
     if (!cameraStarted) {
@@ -78,7 +75,6 @@ class AddStoryPresenter {
       return;
     }
 
-    // Set up capture button
     captureButton.addEventListener("click", () => {
       const photoDataUrl = this.#mediaStream.capturePhoto(canvas);
       if (photoDataUrl) {
@@ -89,7 +85,6 @@ class AddStoryPresenter {
       }
     });
 
-    // Set up close button
     closeButton.addEventListener("click", () => {
       this.#mediaStream.stopCamera();
       document.body.removeChild(modal);
@@ -108,7 +103,6 @@ class AddStoryPresenter {
     }
   }
 
-  // Update this method in your presenter
   async submitStory(description) {
     if (!description) {
       this.#view.showErrorMessage("Description is required");
@@ -126,7 +120,6 @@ class AddStoryPresenter {
     formData.append("description", description);
     formData.append("photo", this.#imageBlob);
 
-    // If location is selected, add lat and lon
     if (this.#selectedLocation) {
       formData.append("lat", this.#selectedLocation.lat);
       formData.append("lon", this.#selectedLocation.lng);

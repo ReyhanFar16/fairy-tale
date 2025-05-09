@@ -25,7 +25,6 @@ class AddStoryPage {
   }
 
   setupEventListeners() {
-    // Camera button
     const cameraButton = this.#container.querySelector("#camera-button");
     if (cameraButton) {
       cameraButton.addEventListener("click", () => {
@@ -33,7 +32,6 @@ class AddStoryPage {
       });
     }
 
-    // File input
     const fileInput = this.#container.querySelector("#file-input");
     if (fileInput) {
       fileInput.addEventListener("change", (event) => {
@@ -41,7 +39,6 @@ class AddStoryPage {
       });
     }
 
-    // Use my location button
     const locationButton = this.#container.querySelector("#use-my-location");
     if (locationButton) {
       locationButton.addEventListener("click", () => {
@@ -49,18 +46,13 @@ class AddStoryPage {
       });
     }
 
-    // Form submission
-    // Form submission
     const form = this.#container.querySelector("#add-story-form");
     if (form) {
       form.addEventListener("submit", (event) => {
         event.preventDefault();
-        // Remove this line - there's no title field in the form
-        // const title = this.#container.querySelector("#story-title").value;
         const description =
           this.#container.querySelector("#story-description").value;
 
-        // Update this line to only pass description
         this.#presenter.submitStory(description);
       });
     }

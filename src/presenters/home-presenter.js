@@ -19,7 +19,6 @@ export default class HomePresenter {
   async #loadData() {
     try {
       console.log("Loading data...");
-      // Simulasi loading data (bisa diganti dengan fetch API nanti)
       await new Promise((resolve) => setTimeout(resolve, 100));
       console.log("Data loaded successfully");
     } catch (error) {
@@ -31,10 +30,8 @@ export default class HomePresenter {
     return this.#data;
   }
 
-  // Implement method yang digunakan di home-page.js
   handleButtonClick() {
     console.log("Home action button clicked");
     alert("You clicked the Learn More button!");
-    // Implementasi fungsi lainnya sesuai kebutuhan
   }
 }

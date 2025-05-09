@@ -7,22 +7,18 @@ class StoryMap {
 
   async initMap(mapContainerId, lat = -6.2088, lng = 106.8456) {
     try {
-      // Centang apakah Leaflet tersedia
       if (!window.L) {
         console.error("Leaflet library not loaded!");
         return false;
       }
 
-      // Inisialisasi map dengan posisi default (Jakarta)
       this.#map = L.map(mapContainerId).setView([lat, lng], 13);
 
-      // Tambahkan tile layer (OpenStreetMap)
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(this.#map);
 
-      // Tambahkan event handler untuk map click
       this.#map.on("click", (e) => {
         this.setMarker(e.latlng.lat, e.latlng.lng);
       });
@@ -35,18 +31,14 @@ class StoryMap {
   }
 
   setMarker(lat, lng) {
-    // Hapus marker lama jika ada
     if (this.#marker) {
       this.#map.removeLayer(this.#marker);
     }
 
-    // Buat marker baru
     this.#marker = L.marker([lat, lng]).addTo(this.#map);
 
-    // Update lokasi yang dipilih
     this.#selectedLocation = { lat, lng };
 
-    // Return lokasi yang dipilih
     return this.#selectedLocation;
   }
 
@@ -54,7 +46,6 @@ class StoryMap {
     return this.#selectedLocation;
   }
 
-  // Mendapatkan lokasi pengguna saat ini
   async getUserLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -82,7 +73,6 @@ class StoryMap {
     });
   }
 
-  // Mendapatkan alamat dari koordinat menggunakan reverse geocoding
   async getAddressFromCoordinates(lat, lng) {
     try {
       const response = await fetch(

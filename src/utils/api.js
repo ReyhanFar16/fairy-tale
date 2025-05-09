@@ -1,19 +1,14 @@
 import AuthService from "./auth.js";
 
 class StoryApi {
-  // Base URLs for API access
   static BASE_URL = "https://story-api.dicoding.dev/v1";
   static GUEST_API_URL = `${this.BASE_URL}/stories/guest`;
   static AUTH_API_URL = `${this.BASE_URL}/stories`;
 
-  /**
-   * Helper method untuk melakukan fetch dengan error handling yang lebih baik
-   */
   static async fetchWithErrorHandling(url, options = {}) {
     try {
       console.log(`Making fetch request to: ${url}`);
 
-      // Add authentication token if available
       if (AuthService.isLoggedIn() && !url.includes("/guest")) {
         if (!options.headers) {
           options.headers = {};
@@ -25,7 +20,6 @@ class StoryApi {
 
       console.log(`Response status: ${response.status}`);
 
-      // For responses that can be parsed as JSON
       if (response.headers.get("content-type")?.includes("application/json")) {
         const data = await response.json();
         console.log("Response data:", data);
@@ -38,7 +32,6 @@ class StoryApi {
 
         return { response, data };
       } else {
-        // For non-JSON responses
         const text = await response.text();
         console.log("Response text:", text);
 
@@ -53,7 +46,6 @@ class StoryApi {
     } catch (error) {
       console.error(`Fetch error: ${error.message}`);
 
-      // Provide more context about the error
       if (error.name === "TypeError" && error.message === "Failed to fetch") {
         console.error("Network error occurred. Possible causes:");
         console.error("- Server is down or unreachable");
@@ -66,10 +58,6 @@ class StoryApi {
     }
   }
 
-  /**
-   * Mengambil daftar stories
-   * Uses authenticated endpoint if logged in, guest endpoint otherwise
-   */
   static async getStories() {
     try {
       const url = AuthService.isLoggedIn()
@@ -97,7 +85,7 @@ class StoryApi {
   }
 
   /**
-   * Mengambil detail story berdasarkan ID
+   * Retrieves story details by ID
    * @param {string} id - ID story
    */
   static async getStoryDetail(id) {
@@ -123,13 +111,11 @@ class StoryApi {
   }
 
   /**
-   * Menambahkan story baru
-   * Uses authenticated endpoint if logged in, guest endpoint otherwise
-   * @param {FormData} formData - form data untuk story baru
+   * Adds a new story
+   * @param {FormData} formData - form data for the new story
    */
   static async addNewStory(formData) {
     try {
-      // Validate required fields
       if (!formData.get("description")) {
         throw new Error("Description is required");
       }

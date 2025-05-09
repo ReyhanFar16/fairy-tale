@@ -10,9 +10,7 @@ class App {
     this._initialAppShell();
   }
 
-  _initialAppShell() {
-    // Initialize app shell if needed
-  }
+  _initialAppShell() {}
 
   async renderPage() {
     const activeRoute = getActiveRoute();
@@ -22,19 +20,15 @@ class App {
       let page;
 
       if (activeRoute === "/") {
-        // Specifically handle home page with MVP pattern
         page = new HomePage();
         const homePresenter = new HomePresenter(page);
         page.setPresenter(homePresenter);
 
-        // Render view first
         this.#mainContent.innerHTML = "";
         this.#mainContent.appendChild(page.render());
 
-        // Initialize presenter
         await homePresenter.init();
       } else {
-        // Handle other routes
         const pageClass = routes[activeRoute];
         if (pageClass) {
           page = pageClass();
@@ -53,12 +47,10 @@ class App {
 
 const app = new App();
 
-// Handle URL changes
 window.addEventListener("hashchange", () => {
   app.renderPage();
 });
 
-// Initial render
 window.addEventListener("DOMContentLoaded", () => {
   app.renderPage();
 });

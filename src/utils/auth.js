@@ -68,7 +68,6 @@ class AuthService {
         throw new Error(responseData.message || "Login failed");
       }
 
-      // Store token and user data
       this.saveToken(responseData.loginResult.token);
       this.saveUser({
         userId: responseData.loginResult.userId,
@@ -133,9 +132,6 @@ class AuthService {
     return !!this.getToken();
   }
 
-  /**
-   * Logout user and clear storage
-   */
   static logout() {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);

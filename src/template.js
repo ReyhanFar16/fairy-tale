@@ -1,5 +1,4 @@
 const template = {
-  // Update template addStoryPage
   addStoryPage: () => `
 <div class="add-story-container">
   <h2 class="page-title">Share Your Story</h2>

@@ -11,13 +11,11 @@ class LoginPresenter {
     this.#view.render();
     this.#view.setupEventListeners();
 
-    // Redirect if already logged in
     if (AuthService.isLoggedIn()) {
       window.location.hash = "#/";
     }
   }
 
-  // Add to your login-presenter.js to debug
   async login(email, password) {
     if (!email || !password) {
       this.#view.showErrorMessage("Please fill in all fields");
@@ -35,7 +33,6 @@ class LoginPresenter {
         this.#view.showErrorMessage(response.message);
       } else {
         console.log("Login successful, token:", AuthService.getToken());
-        // Login successful, redirect to home page
         window.location.hash = "#/";
       }
     } catch (error) {
