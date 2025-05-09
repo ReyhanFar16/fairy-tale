@@ -1,6 +1,7 @@
 const path = require("path");
 const config = require("./webpack.config");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { merge } = require("webpack-merge");
 
 module.exports = merge(config, {
@@ -16,4 +17,9 @@ module.exports = merge(config, {
       filename: "main.[contenthash].css",
     }),
   ],
+
+  //* ------- CSS Minimize Optimization ------- */
+  optimization: {
+    minimizer: [new CssMinimizerPlugin()],
+  },
 });
