@@ -151,7 +151,6 @@ class AddStoryPage {
   }
 
   prepareCameraInterface() {
-    // Create a modal for the camera interface
     const modal = document.createElement("div");
     modal.className = "camera-modal";
     modal.id = "camera-modal";
@@ -167,7 +166,6 @@ class AddStoryPage {
   `;
     document.body.appendChild(modal);
 
-    // Return the video element that will be used by the MediaStreamUtil
     return document.getElementById("camera-preview");
   }
 
@@ -176,17 +174,13 @@ class AddStoryPage {
     const closeButton = document.getElementById("close-camera");
     const canvas = document.getElementById("photo-canvas");
 
-    // Setup the capture button
     captureButton.addEventListener("click", () => {
-      // Capture photo
       const photoDataUrl = mediaStreamUtil.capturePhoto(canvas);
       if (photoDataUrl) {
-        // Convert to blob and send to presenter
         const imageBlob = mediaStreamUtil.dataURLtoBlob(photoDataUrl);
         this.#presenter.setImageFromCamera(imageBlob);
         this.showImagePreview(photoDataUrl);
 
-        // Clean up
         mediaStreamUtil.stopCamera();
         const modal = document.getElementById("camera-modal");
         if (modal) {
@@ -195,7 +189,6 @@ class AddStoryPage {
       }
     });
 
-    // Setup the close button
     closeButton.addEventListener("click", () => {
       mediaStreamUtil.stopCamera();
       const modal = document.getElementById("camera-modal");

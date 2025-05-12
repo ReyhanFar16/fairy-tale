@@ -58,7 +58,6 @@ class StoryDetailPage {
           </div>
         `;
 
-      // If the story has location, initialize the map after render
       if (story.lat && story.lon) {
         setTimeout(() => {
           this.#initMap(story);

@@ -66,14 +66,12 @@ const routes = {
   },
 
   "/stories/:id": (params = {}) => {
-    // Add default empty object and null check
     const storyId = params?.id;
 
     if (!storyId) {
       console.error("Story ID is missing from parameters");
-      // Redirect to the stories list page if ID is missing
       window.location.hash = "#/stories";
-      return document.createElement("div"); // Return empty div while redirecting
+      return document.createElement("div");
     }
 
     const storyDetailPage = new StoryDetailPage();

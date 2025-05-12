@@ -14,7 +14,6 @@ export default class HomePage {
   render(data = {}) {
     const { title, description } = data;
 
-    // Inline modern styles
     this.#container.innerHTML = `
         <style>
           .home-page-container {

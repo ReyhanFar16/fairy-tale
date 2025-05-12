@@ -91,7 +91,6 @@ class StoryApi {
    */
   static async getStoryDetail(id) {
     try {
-      // Check if user is logged in
       if (!AuthService.isLoggedIn()) {
         console.warn(
           "User not logged in, story details require authentication"
@@ -103,13 +102,11 @@ class StoryApi {
         };
       }
 
-      // Only use authenticated endpoint
       const url = `${this.AUTH_API_URL}/${id}`;
       console.log(
         `Getting story detail for ID ${id}, logged in: ${AuthService.isLoggedIn()}`
       );
 
-      // Let fetchWithErrorHandling handle the auth headers
       const { data } = await this.fetchWithErrorHandling(url, {
         method: "GET",
         headers: {
@@ -158,19 +155,16 @@ class StoryApi {
         throw new Error("Photo is required");
       }
 
-      // Add debugging for location data
       const lat = formData.get("lat");
       const lon = formData.get("lon");
 
       console.log("Location data in request:", { lat, lon });
 
-      // Optional: Validate coordinates if present
       if (lat !== null && lon !== null) {
         // Convert to numbers
         const latNum = parseFloat(lat);
         const lonNum = parseFloat(lon);
 
-        // Basic validation
         if (isNaN(latNum) || isNaN(lonNum)) {
           console.warn("Invalid location coordinates:", { lat, lon });
         } else {

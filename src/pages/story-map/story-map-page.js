@@ -46,7 +46,6 @@ class StoryMapPage {
       if (story.lat && story.lon) {
         const marker = L.marker([story.lat, story.lon]).addTo(this.#map);
 
-        // Create popup with story information
         const popupContent = `
               <div class="map-popup">
                 <h3>${story.name}'s Story</h3>
