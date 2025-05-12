@@ -48,47 +48,19 @@ class AddStoryPresenter {
   }
 
   async openCamera() {
-    const modal = document.createElement("div");
-    modal.className = "camera-modal";
-    modal.innerHTML = `
-      <div class="camera-container">
-        <video id="camera-preview" autoplay playsinline></video>
-        <div class="camera-controls">
-          <button id="capture-photo" class="btn btn-primary">Take Photo</button>
-          <button id="close-camera" class="btn btn-secondary">Cancel</button>
-        </div>
-        <canvas id="photo-canvas" style="display:none;"></canvas>
-      </div>
-    `;
-    document.body.appendChild(modal);
+    try {
+      const videoElement = this.#view.prepareCameraInterface();
 
-    const video = document.getElementById("camera-preview");
-    const captureButton = document.getElementById("capture-photo");
-    const closeButton = document.getElementById("close-camera");
-    const canvas = document.getElementById("photo-canvas");
-
-    const cameraStarted = await this.#mediaStream.startCamera(video);
-
-    if (!cameraStarted) {
-      document.body.removeChild(modal);
-      this.#view.showErrorMessage("Could not access camera");
-      return;
-    }
-
-    captureButton.addEventListener("click", () => {
-      const photoDataUrl = this.#mediaStream.capturePhoto(canvas);
-      if (photoDataUrl) {
-        this.#imageBlob = this.#mediaStream.dataURLtoBlob(photoDataUrl);
-        this.#view.showImagePreview(photoDataUrl);
-        this.#mediaStream.stopCamera();
-        document.body.removeChild(modal);
+      const videoStream = await this.#mediaStream.startCamera(videoElement);
+      if (!videoStream) {
+        this.#view.showErrorMessage("Could not access camera");
+        return;
       }
-    });
 
-    closeButton.addEventListener("click", () => {
-      this.#mediaStream.stopCamera();
-      document.body.removeChild(modal);
-    });
+      this.#view.showCameraInterface(videoStream, this.#mediaStream);
+    } catch (error) {
+      this.#view.showErrorMessage("Error accessing camera: " + error.message);
+    }
   }
 
   async handleFileInput(file) {
@@ -139,6 +111,10 @@ class AddStoryPresenter {
     } finally {
       this.#view.showLoadingIndicator(false);
     }
+  }
+
+  setImageFromCamera(blob) {
+    this.#imageBlob = blob;
   }
 }
 

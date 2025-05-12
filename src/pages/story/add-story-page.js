@@ -102,6 +102,108 @@ class AddStoryPage {
   showErrorMessage(message) {
     alert(`Error: ${message}`);
   }
+
+  async openCamera() {
+    const modal = document.createElement("div");
+    modal.className = "camera-modal";
+    modal.innerHTML = `
+    <div class="camera-container">
+      <video id="camera-preview" autoplay playsinline></video>
+      <div class="camera-controls">
+        <button id="capture-photo" class="btn btn-primary">Take Photo</button>
+        <button id="close-camera" class="btn btn-secondary">Cancel</button>
+      </div>
+      <canvas id="photo-canvas" style="display:none;"></canvas>
+    </div>
+  `;
+    document.body.appendChild(modal);
+
+    const video = document.getElementById("camera-preview");
+    const captureButton = document.getElementById("capture-photo");
+    const closeButton = document.getElementById("close-camera");
+    const canvas = document.getElementById("photo-canvas");
+
+    // Get the MediaStreamUtil instance from presenter
+    const mediaStream = this.#presenter.getMediaStream();
+    const cameraStarted = await mediaStream.startCamera(video);
+
+    if (!cameraStarted) {
+      document.body.removeChild(modal);
+      this.showErrorMessage("Could not access camera");
+      return;
+    }
+
+    captureButton.addEventListener("click", () => {
+      const photoDataUrl = mediaStream.capturePhoto(canvas);
+      if (photoDataUrl) {
+        const imageBlob = mediaStream.dataURLtoBlob(photoDataUrl);
+        this.#presenter.setImageBlob(imageBlob);
+        this.showImagePreview(photoDataUrl);
+        mediaStream.stopCamera();
+        document.body.removeChild(modal);
+      }
+    });
+
+    closeButton.addEventListener("click", () => {
+      mediaStream.stopCamera();
+      document.body.removeChild(modal);
+    });
+  }
+
+  prepareCameraInterface() {
+    // Create a modal for the camera interface
+    const modal = document.createElement("div");
+    modal.className = "camera-modal";
+    modal.id = "camera-modal";
+    modal.innerHTML = `
+    <div class="camera-container">
+      <video id="camera-preview" autoplay playsinline></video>
+      <div class="camera-controls">
+        <button id="capture-photo" class="btn btn-primary">Take Photo</button>
+        <button id="close-camera" class="btn btn-secondary">Cancel</button>
+      </div>
+      <canvas id="photo-canvas" style="display:none;"></canvas>
+    </div>
+  `;
+    document.body.appendChild(modal);
+
+    // Return the video element that will be used by the MediaStreamUtil
+    return document.getElementById("camera-preview");
+  }
+
+  showCameraInterface(videoStream, mediaStreamUtil) {
+    const captureButton = document.getElementById("capture-photo");
+    const closeButton = document.getElementById("close-camera");
+    const canvas = document.getElementById("photo-canvas");
+
+    // Setup the capture button
+    captureButton.addEventListener("click", () => {
+      // Capture photo
+      const photoDataUrl = mediaStreamUtil.capturePhoto(canvas);
+      if (photoDataUrl) {
+        // Convert to blob and send to presenter
+        const imageBlob = mediaStreamUtil.dataURLtoBlob(photoDataUrl);
+        this.#presenter.setImageFromCamera(imageBlob);
+        this.showImagePreview(photoDataUrl);
+
+        // Clean up
+        mediaStreamUtil.stopCamera();
+        const modal = document.getElementById("camera-modal");
+        if (modal) {
+          document.body.removeChild(modal);
+        }
+      }
+    });
+
+    // Setup the close button
+    closeButton.addEventListener("click", () => {
+      mediaStreamUtil.stopCamera();
+      const modal = document.getElementById("camera-modal");
+      if (modal) {
+        document.body.removeChild(modal);
+      }
+    });
+  }
 }
 
 export default AddStoryPage;

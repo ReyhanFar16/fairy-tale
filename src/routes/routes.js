@@ -4,6 +4,7 @@ import AddStoryPage from "../pages/story/add-story-page.js";
 import StoryListPage from "../pages/story/story-list-page.js";
 import LoginPage from "../pages/auth/login-page.js";
 import RegisterPage from "../pages/auth/register-page.js";
+import StoryMapPage from "../pages/story-map/story-map-page.js";
 
 //* --- Presenters --- */
 import HomePresenter from "../presenters/home-presenter.js";
@@ -11,6 +12,7 @@ import AddStoryPresenter from "../presenters/add-story-presenter.js";
 import StoryListPresenter from "../presenters/story-list-presenter.js";
 import LoginPresenter from "../presenters/login-presenter.js";
 import RegisterPresenter from "../presenters/register-presenter.js";
+import StoryMapPresenter from "../presenters/story-map-presenter.js";
 
 const routes = {
   "/": () => {
@@ -75,6 +77,18 @@ const routes = {
     }, 0);
 
     return registerPage;
+  },
+
+  "/map": () => {
+    const storyMapPage = new StoryMapPage();
+    const storyMapPresenter = new StoryMapPresenter(storyMapPage);
+    storyMapPage.setPresenter(storyMapPresenter);
+
+    setTimeout(() => {
+      storyMapPresenter.init();
+    }, 0);
+
+    return storyMapPage;
   },
 };
 

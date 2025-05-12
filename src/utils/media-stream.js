@@ -18,10 +18,10 @@ class MediaStreamUtil {
       this.#stream = await navigator.mediaDevices.getUserMedia(constraints);
       this.#videoElement.srcObject = this.#stream;
 
-      return true;
+      return this.#stream;
     } catch (error) {
       console.error("Error accessing camera:", error);
-      return false;
+      return null;
     }
   }
 
