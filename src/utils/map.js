@@ -1,5 +1,3 @@
-import StoryApi from "./api.js";
-
 class StoryMap {
   #map = null;
   #marker = null;
