@@ -39,6 +39,9 @@ class AddStoryPresenter {
         location.lat,
         location.lng
       );
+
+      this.#selectedLocation = location;
+
       this.#view.showLocationInfo(address, location);
     } catch (error) {
       this.#view.showErrorMessage(

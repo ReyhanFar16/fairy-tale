@@ -56,7 +56,7 @@ class StoryMapPage {
                 <p>${this.#truncateText(story.description, 100)}</p>
                 <a href="#/stories/${
                   story.id
-                }" class="btn btn-primary">Read More</a>
+                }" class="btn btn-primary" style="color:white;">Read More</a>
               </div>
             `;
 

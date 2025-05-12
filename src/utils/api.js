@@ -114,6 +114,10 @@ class StoryApi {
    * Adds a new story
    * @param {FormData} formData - form data for the new story
    */
+  /**
+   * Adds a new story
+   * @param {FormData} formData - form data for the new story
+   */
   static async addNewStory(formData) {
     try {
       if (!formData.get("description")) {
@@ -122,6 +126,31 @@ class StoryApi {
 
       if (!formData.get("photo")) {
         throw new Error("Photo is required");
+      }
+
+      // Add debugging for location data
+      const lat = formData.get("lat");
+      const lon = formData.get("lon");
+
+      console.log("Location data in request:", { lat, lon });
+
+      // Optional: Validate coordinates if present
+      if (lat !== null && lon !== null) {
+        // Convert to numbers
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+
+        // Basic validation
+        if (isNaN(latNum) || isNaN(lonNum)) {
+          console.warn("Invalid location coordinates:", { lat, lon });
+        } else {
+          console.log("Valid coordinates detected:", {
+            lat: latNum,
+            lon: lonNum,
+          });
+        }
+      } else {
+        console.log("No location data provided for this story");
       }
 
       const url = AuthService.isLoggedIn()
