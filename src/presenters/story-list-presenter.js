@@ -18,6 +18,8 @@ class StoryListPresenter {
   async loadStories() {
     try {
       const response = await StoryApi.getStories();
+      console.log("Fetching stories...");
+      console.log("API response:", response);
 
       if (response.error) {
         this.#view.showErrorMessage(response.message);

@@ -25,6 +25,7 @@ class App {
       let page;
       let oldElement = null;
 
+      // Exit animation for current page
       if (this.#currentPage && this.#mainContent.firstChild) {
         oldElement = this.#mainContent.firstChild;
         oldElement.classList.add("page-exit");
@@ -55,7 +56,8 @@ class App {
       } else {
         const pageClass = routes[activeRoute];
         if (pageClass) {
-          page = pageClass();
+          // Pass the URL parameters to the route handler
+          page = pageClass(urlParams); // This is the important change
 
           const newElement = page.render();
           newElement.classList.add("page-enter");

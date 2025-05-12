@@ -5,6 +5,7 @@ import StoryListPage from "../pages/story/story-list-page.js";
 import LoginPage from "../pages/auth/login-page.js";
 import RegisterPage from "../pages/auth/register-page.js";
 import StoryMapPage from "../pages/story-map/story-map-page.js";
+import StoryDetailPage from "../pages/story/story-detail-page.js";
 
 //* --- Presenters --- */
 import HomePresenter from "../presenters/home-presenter.js";
@@ -13,6 +14,7 @@ import StoryListPresenter from "../presenters/story-list-presenter.js";
 import LoginPresenter from "../presenters/login-presenter.js";
 import RegisterPresenter from "../presenters/register-presenter.js";
 import StoryMapPresenter from "../presenters/story-map-presenter.js";
+import StoryDetailPresenter from "../presenters/story-detail-presenter.js";
 
 const routes = {
   "/": () => {
@@ -63,8 +65,29 @@ const routes = {
     return storyListPage;
   },
 
-  "/stories/:id": () => {
-    return document.createElement("div");
+  "/stories/:id": (params = {}) => {
+    // Add default empty object and null check
+    const storyId = params?.id;
+
+    if (!storyId) {
+      console.error("Story ID is missing from parameters");
+      // Redirect to the stories list page if ID is missing
+      window.location.hash = "#/stories";
+      return document.createElement("div"); // Return empty div while redirecting
+    }
+
+    const storyDetailPage = new StoryDetailPage();
+    const storyDetailPresenter = new StoryDetailPresenter(
+      storyDetailPage,
+      storyId
+    );
+    storyDetailPage.setPresenter(storyDetailPresenter);
+
+    setTimeout(() => {
+      storyDetailPresenter.init();
+    }, 0);
+
+    return storyDetailPage;
   },
 
   "/register": () => {

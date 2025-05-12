@@ -63,6 +63,7 @@ class StoryApi {
       const url = AuthService.isLoggedIn()
         ? this.AUTH_API_URL
         : this.GUEST_API_URL;
+
       const { data } = await this.fetchWithErrorHandling(url, {
         method: "GET",
         headers: {
@@ -90,11 +91,40 @@ class StoryApi {
    */
   static async getStoryDetail(id) {
     try {
-      const url = AuthService.isLoggedIn()
-        ? `${this.AUTH_API_URL}/${id}`
-        : `${this.GUEST_API_URL}/${id}`;
+      // Check if user is logged in
+      if (!AuthService.isLoggedIn()) {
+        console.warn(
+          "User not logged in, story details require authentication"
+        );
+        return {
+          error: true,
+          message: "Authentication required to view story details",
+          story: null,
+        };
+      }
 
-      const { data } = await this.fetchWithErrorHandling(url);
+      // Only use authenticated endpoint
+      const url = `${this.AUTH_API_URL}/${id}`;
+      console.log(
+        `Getting story detail for ID ${id}, logged in: ${AuthService.isLoggedIn()}`
+      );
+
+      // Let fetchWithErrorHandling handle the auth headers
+      const { data } = await this.fetchWithErrorHandling(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!data || !data.story) {
+        console.error("API returned success but no story data:", data);
+        return {
+          error: true,
+          message: "Story data not found",
+          story: null,
+        };
+      }
 
       return {
         error: false,
