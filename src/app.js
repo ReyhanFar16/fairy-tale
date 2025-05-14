@@ -22,40 +22,59 @@ class App {
     this.#isTransitioning = true;
 
     try {
-      let page;
-      let oldElement = null;
+      if (document.startViewTransition) {
+        const transition = document.startViewTransition(async () => {
+          let page;
+          if (activeRoute === "/") {
+            page = new HomePage();
+            const homePresenter = new HomePresenter(page);
+            page.setPresenter(homePresenter);
 
-      if (this.#currentPage && this.#mainContent.firstChild) {
-        oldElement = this.#mainContent.firstChild;
-        oldElement.classList.add("page-exit");
+            this.#mainContent.innerHTML = "";
+            this.#mainContent.appendChild(page.render());
 
-        void oldElement.offsetWidth;
+            await homePresenter.init();
+          } else {
+            const pageClass = routes[activeRoute];
+            if (pageClass) {
+              page = pageClass(urlParams);
 
-        oldElement.classList.add("page-exit-active");
+              this.#mainContent.innerHTML = "";
+              this.#mainContent.appendChild(page.render());
+            } else {
+              this.#mainContent.innerHTML = "<p>Page not found</p>";
+            }
+          }
 
-        await this.#waitForTransition(oldElement);
-      }
+          this.#currentPage = page;
+        });
 
-      if (activeRoute === "/") {
-        page = new HomePage();
-        const homePresenter = new HomePresenter(page);
-        page.setPresenter(homePresenter);
+        transition.updateCallbackDone.then(() => {
+          console.log("DOM updated successfully");
+        });
 
-        const newElement = page.render();
-        newElement.classList.add("page-enter");
+        transition.ready.then(() => {
+          console.log("View transition ready to animate");
+        });
 
-        this.#mainContent.innerHTML = "";
-        this.#mainContent.appendChild(newElement);
-
-        void newElement.offsetWidth;
-
-        newElement.classList.add("page-enter-active");
-
-        await homePresenter.init();
+        await transition.finished;
+        console.log("View transition animation completed");
       } else {
-        const pageClass = routes[activeRoute];
-        if (pageClass) {
-          page = pageClass(urlParams);
+        let page;
+        let oldElement = null;
+
+        if (this.#currentPage && this.#mainContent.firstChild) {
+          oldElement = this.#mainContent.firstChild;
+          oldElement.classList.add("page-exit");
+          void oldElement.offsetWidth;
+          oldElement.classList.add("page-exit-active");
+          await this.#waitForTransition(oldElement);
+        }
+
+        if (activeRoute === "/") {
+          page = new HomePage();
+          const homePresenter = new HomePresenter(page);
+          page.setPresenter(homePresenter);
 
           const newElement = page.render();
           newElement.classList.add("page-enter");
@@ -64,17 +83,11 @@ class App {
           this.#mainContent.appendChild(newElement);
 
           void newElement.offsetWidth;
-
           newElement.classList.add("page-enter-active");
+
+          await homePresenter.init();
         } else {
-          this.#mainContent.innerHTML = "<p>Page not found</p>";
         }
-      }
-
-      this.#currentPage = page;
-
-      if (this.#mainContent.firstChild) {
-        await this.#waitForTransition(this.#mainContent.firstChild);
       }
     } catch (error) {
       console.error("Error rendering page:", error);

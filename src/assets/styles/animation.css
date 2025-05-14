@@ -91,6 +91,18 @@
   }
 }
 
+@keyframes slide-from-right {
+  from {
+    transform: translateX(30px);
+  }
+}
+
+@keyframes slide-to-left {
+  to {
+    transform: translateX(-30px);
+  }
+}
+
 /* Scale transitions */
 .scale-in {
   animation-name: scaleIn;
@@ -122,6 +134,14 @@
   }
 }
 
+::view-transition-old(root) {
+  animation: 300ms both fade-out, 500ms both slide-to-left;
+}
+
+::view-transition-new(root) {
+  animation: 300ms both fade-in, 500ms both slide-from-right;
+}
+
 /* Form elements animations */
 .form-group input,
 .form-group textarea {
@@ -144,7 +164,7 @@
 
 /* Card hover effects */
 .story-card {
-  transition: transform 0.3s, box-shadow 0.3s;
+  view-transition-name: story-card;
 }
 
 .story-card:hover {
