@@ -42,10 +42,10 @@ export function getActiveRoute() {
 }
 
 export function parseActivePathname() {
-  const url = window.location.hash.slice(1).toLowerCase();
+  const url = window.location.hash.slice(1);
   const splitUrl = url.split("/");
 
-  if (splitUrl[1] === "stories" && splitUrl[2]) {
+  if (splitUrl[1]?.toLowerCase() === "stories" && splitUrl[2]) {
     console.log(`Extracted ID: ${splitUrl[2]}`);
     return { id: splitUrl[2] };
   }
