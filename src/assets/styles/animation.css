@@ -42,20 +42,26 @@
   animation-name: fadeOut;
 }
 
-@keyframes fadeIn {
-  from {
+@keyframes fade-in {
+  0% {
     opacity: 0;
   }
-  to {
+  30% {
+    opacity: 0;
+  }
+  100% {
     opacity: 1;
   }
 }
 
-@keyframes fadeOut {
-  from {
+@keyframes fade-out {
+  0% {
     opacity: 1;
   }
-  to {
+  70% {
+    opacity: 0;
+  }
+  100% {
     opacity: 0;
   }
 }
@@ -92,14 +98,26 @@
 }
 
 @keyframes slide-from-right {
-  from {
-    transform: translateX(30px);
+  0% {
+    transform: translateX(15px);
+  }
+  30% {
+    transform: translateX(15px);
+  }
+  100% {
+    transform: translateX(0);
   }
 }
 
 @keyframes slide-to-left {
-  to {
-    transform: translateX(-30px);
+  0% {
+    transform: translateX(0);
+  }
+  70% {
+    transform: translateX(-15px);
+  }
+  100% {
+    transform: translateX(-15px);
   }
 }
 
@@ -135,11 +153,13 @@
 }
 
 ::view-transition-old(root) {
-  animation: 300ms both fade-out, 500ms both slide-to-left;
+  animation: 800ms cubic-bezier(0.4, 0, 0.2, 1) both fade-out,
+    1000ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
 }
 
 ::view-transition-new(root) {
-  animation: 300ms both fade-in, 500ms both slide-from-right;
+  animation: 800ms cubic-bezier(0.4, 0, 0.2, 1) both fade-in,
+    1000ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
 }
 
 /* Form elements animations */
@@ -164,7 +184,7 @@
 
 /* Card hover effects */
 .story-card {
-  view-transition-name: story-card;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .story-card:hover {

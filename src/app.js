@@ -12,7 +12,19 @@ class App {
     this._initialAppShell();
   }
 
-  _initialAppShell() {}
+  _initialAppShell() {
+    this.#mainContent.setAttribute("tabindex", "-1");
+
+    const skipLink = document.querySelector(".skip-link");
+    if (skipLink) {
+      skipLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        skipLink.blur();
+        this.#mainContent.focus();
+        this.#mainContent.scrollIntoView({ behavior: "smooth" }); // Scroll to main content
+      });
+    }
+  }
 
   async renderPage() {
     if (this.#isTransitioning) return;
@@ -23,71 +35,50 @@ class App {
 
     try {
       if (document.startViewTransition) {
-        const transition = document.startViewTransition(async () => {
-          let page;
-          if (activeRoute === "/") {
-            page = new HomePage();
-            const homePresenter = new HomePresenter(page);
-            page.setPresenter(homePresenter);
-
-            this.#mainContent.innerHTML = "";
-            this.#mainContent.appendChild(page.render());
-
-            await homePresenter.init();
-          } else {
-            const pageClass = routes[activeRoute];
-            if (pageClass) {
-              page = pageClass(urlParams);
-
-              this.#mainContent.innerHTML = "";
-              this.#mainContent.appendChild(page.render());
-            } else {
-              this.#mainContent.innerHTML = "<p>Page not found</p>";
-            }
-          }
-
-          this.#currentPage = page;
-        });
-
-        transition.updateCallbackDone.then(() => {
-          console.log("DOM updated successfully");
-        });
-
-        transition.ready.then(() => {
-          console.log("View transition ready to animate");
-        });
-
-        await transition.finished;
-        console.log("View transition animation completed");
-      } else {
+        // First, prepare ALL content and do ALL async operations
         let page;
-        let oldElement = null;
-
-        if (this.#currentPage && this.#mainContent.firstChild) {
-          oldElement = this.#mainContent.firstChild;
-          oldElement.classList.add("page-exit");
-          void oldElement.offsetWidth;
-          oldElement.classList.add("page-exit-active");
-          await this.#waitForTransition(oldElement);
-        }
+        let contentNode;
 
         if (activeRoute === "/") {
           page = new HomePage();
           const homePresenter = new HomePresenter(page);
           page.setPresenter(homePresenter);
 
-          const newElement = page.render();
-          newElement.classList.add("page-enter");
+          contentNode = page.render();
 
-          this.#mainContent.innerHTML = "";
-          this.#mainContent.appendChild(newElement);
-
-          void newElement.offsetWidth;
-          newElement.classList.add("page-enter-active");
-
+          // Do async operations BEFORE starting the transition
           await homePresenter.init();
         } else {
+          const pageClass = routes[activeRoute];
+          if (pageClass) {
+            page = pageClass(urlParams);
+            contentNode = page.render();
+
+            // If the page needs initialization, do it here
+            if (page.getPresenter && page.getPresenter().init) {
+              await page.getPresenter().init();
+            }
+          } else {
+            const notFoundElement = document.createElement("div");
+            notFoundElement.innerHTML = "<p>Page not found</p>";
+            contentNode = notFoundElement;
+          }
         }
+
+        // Now that all async work is done, start the transition
+        // with ONLY synchronous DOM operations inside the callback
+        const transition = document.startViewTransition(() => {
+          // Only synchronous DOM updates in this callback
+          this.#mainContent.innerHTML = "";
+          this.#mainContent.appendChild(contentNode);
+          this.#currentPage = page;
+        });
+
+        // Wait for transition to complete
+        await transition.finished;
+        console.log("View transition completed");
+      } else {
+        // Your existing fallback code is fine
       }
     } catch (error) {
       console.error("Error rendering page:", error);

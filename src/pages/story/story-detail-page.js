@@ -22,7 +22,9 @@ class StoryDetailPage {
               )}</span>
             </div>
             
-            <div class="story-detail-image">
+            <div class="story-detail-image style="view-transition-name: story-${
+              story.id
+            }">
               <img src="${story.photoUrl}" alt="Story by ${story.name}" />
             </div>
             

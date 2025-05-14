@@ -37,24 +37,24 @@ class StoryListPage {
 
     return stories
       .map(
-        (story) => `
-      <div class="story-card">
-        <div class="story-image">
-          <img src="${story.photoUrl}" alt="${story.name}'s story">
-        </div>
-        <div class="story-content">
-          <h3 class="story-title">${story.name}</h3>
-          <p class="story-date">${this.#formatDate(story.createdAt)}</p>
-          <p class="story-description">${this.#truncateText(
-            story.description,
-            100
-          )}</p>
-          <button class="btn btn-primary read-more" data-story-id="${
-            story.id
-          }">Read more</button>
-        </div>
+        (story, index) => `
+    <div class="story-card" style="view-transition-name: story-${story.id}">
+      <div class="story-image">
+        <img src="${story.photoUrl}" alt="${story.name}'s story">
       </div>
-    `
+      <div class="story-content">
+        <h3 class="story-title">${story.name}</h3>
+        <p class="story-date">${this.#formatDate(story.createdAt)}</p>
+        <p class="story-description">${this.#truncateText(
+          story.description,
+          100
+        )}</p>
+        <button class="btn btn-primary read-more" data-story-id="${
+          story.id
+        }">Read more</button>
+      </div>
+    </div>
+  `
       )
       .join("");
   }
