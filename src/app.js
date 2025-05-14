@@ -21,7 +21,7 @@ class App {
         event.preventDefault();
         skipLink.blur();
         this.#mainContent.focus();
-        this.#mainContent.scrollIntoView({ behavior: "smooth" }); // Scroll to main content
+        this.#mainContent.scrollIntoView({ behavior: "smooth" });
       });
     }
   }
@@ -35,7 +35,6 @@ class App {
 
     try {
       if (document.startViewTransition) {
-        // First, prepare ALL content and do ALL async operations
         let page;
         let contentNode;
 
@@ -46,7 +45,6 @@ class App {
 
           contentNode = page.render();
 
-          // Do async operations BEFORE starting the transition
           await homePresenter.init();
         } else {
           const pageClass = routes[activeRoute];
@@ -54,7 +52,6 @@ class App {
             page = pageClass(urlParams);
             contentNode = page.render();
 
-            // If the page needs initialization, do it here
             if (page.getPresenter && page.getPresenter().init) {
               await page.getPresenter().init();
             }
@@ -65,20 +62,15 @@ class App {
           }
         }
 
-        // Now that all async work is done, start the transition
-        // with ONLY synchronous DOM operations inside the callback
         const transition = document.startViewTransition(() => {
-          // Only synchronous DOM updates in this callback
           this.#mainContent.innerHTML = "";
           this.#mainContent.appendChild(contentNode);
           this.#currentPage = page;
         });
 
-        // Wait for transition to complete
         await transition.finished;
         console.log("View transition completed");
       } else {
-        // Your existing fallback code is fine
       }
     } catch (error) {
       console.error("Error rendering page:", error);
