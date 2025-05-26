@@ -83,50 +83,64 @@ let notificationPreference = {
   enabled: true,
 };
 
-// Perbarui fungsi unsubscribe
+// Perbaikan fungsi unsubscribe
 async function unsubscribePushNotification() {
   try {
+    console.log("Starting unsubscribe process");
+
     if (!("serviceWorker" in navigator)) {
       return { error: true, message: "Browser tidak mendukung Service Worker" };
     }
 
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    // Gunakan getRegistrations untuk mendapatkan semua registrasi
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    console.log(`Found ${registrations.length} registrations`);
 
-    if (!subscription) {
-      // Update preference dan localStorage
-      notificationPreference.enabled = false;
+    if (registrations.length === 0) {
+      // Tidak ada registrasi, anggap berhasil unsubscribe
       localStorage.setItem("notificationStatus", "false");
-      return { error: false, message: "Tidak ada langganan aktif" };
+      return { error: false, message: "Tidak ada service worker aktif" };
     }
 
-    try {
-      // Hapus subscription dari push service
-      await subscription.unsubscribe();
+    let unsubscribed = false;
 
-      // Kirim ke server jika tersedia
+    // Coba setiap registrasi
+    for (const registration of registrations) {
       try {
-        await StoryApi.unsubscribePushNotification({
-          endpoint: subscription.endpoint,
+        // Gunakan timeout untuk menghindari hanging
+        const timeoutPromise = new Promise((resolve) => {
+          setTimeout(() => resolve(null), 2000);
         });
-      } catch (serverError) {
-        console.warn("Server unsubscribe error:", serverError);
-        // Lanjutkan meskipun server error
+
+        const subscription = await Promise.race([
+          registration.pushManager.getSubscription(),
+          timeoutPromise,
+        ]);
+
+        if (subscription) {
+          await subscription.unsubscribe();
+          unsubscribed = true;
+          break;
+        }
+      } catch (err) {
+        console.warn("Error unsubscribing from specific registration:", err);
       }
-
-      // Set preference untuk menonaktifkan semua notifikasi
-      notificationPreference.enabled = false;
-      localStorage.setItem("notificationStatus", "false");
-
-      return { error: false, message: "Berhasil berhenti berlangganan" };
-    } catch (error) {
-      return {
-        error: true,
-        message: error.message || "Gagal berhenti berlangganan",
-      };
     }
+
+    // Selalu update status di localStorage, bahkan jika ada error
+    localStorage.setItem("notificationStatus", "false");
+
+    return {
+      error: false,
+      message: unsubscribed
+        ? "Berhasil berhenti berlangganan"
+        : "Tidak ada langganan aktif",
+    };
   } catch (error) {
     console.error("Error saat unsubscribe:", error);
+    // Selalu update status di localStorage, bahkan jika ada error
+    localStorage.setItem("notificationStatus", "false");
+
     return {
       error: true,
       message: error.message || "Gagal menghapus langganan",

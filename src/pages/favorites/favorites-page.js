@@ -96,7 +96,6 @@ export default class FavoritesPage {
       `;
     }
 
-    // Set up event listeners for remove buttons
     this.setupEventListeners();
   }
 
@@ -192,7 +191,6 @@ export default class FavoritesPage {
       });
     });
 
-    // Make the entire card clickable to view story
     const storyCards = this.#container.querySelectorAll(".story-card");
     storyCards.forEach((card) => {
       card.addEventListener("click", (event) => {

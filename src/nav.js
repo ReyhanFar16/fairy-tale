@@ -11,27 +11,37 @@ let notificationState = {
   pendingOperation: false,
 };
 
+// Variabel untuk mengontrol state menu di mobile
+let isMobileMenuOpen = false;
+
 // Fungsi untuk memperbarui UI navigasi
 function updateAuthUI() {
+  // Gunakan elemen nav yang sudah ada di HTML alih-alih membuat elemen baru
   const navMenu = document.getElementById("nav-menu");
 
+  // Jika tidak ditemukan, keluar dari fungsi
+  if (!navMenu) {
+    console.error("Navigation menu element not found");
+    return;
+  }
+
+  // Perbarui menu sesuai dengan status login
   if (window.AuthService && window.AuthService.isLoggedIn()) {
     navMenu.innerHTML = `
-        <li class="notification-item"></li>
-        <li><a href="#/" class="nav-link">Home</a></li>
-        <li><a href="#/add" class="nav-link">Add Story</a></li>
-        <li><a href="#/stories" class="nav-link">Stories</a></li>
-        <li><a href="#/map" class="nav-link">Map</a></li>
-        <li><a href="#/favorites" class="nav-link">Favorites</a></li>
-        <li>
-          <a href="#" class="nav-link" id="logout-link">Logout</a>
-        </li>
-      `;
+      <li class="notification-item"></li>
+      <li><a href="#/" class="nav-link">Home</a></li>
+      <li><a href="#/add" class="nav-link">Add Story</a></li>
+      <li><a href="#/stories" class="nav-link">Stories</a></li>
+      <li><a href="#/map" class="nav-link">Map</a></li>
+      <li><a href="#/favorites" class="nav-link">Favorites</a></li>
+      <li><a href="#" class="nav-link" id="logout-link">Logout</a></li>
+    `;
 
-    // Tambahkan tombol notifikasi di container khusus
+    // Tambahkan tombol notifikasi
     addNotificationButton();
 
-    document.getElementById("logout-link").addEventListener("click", (e) => {
+    // Tambahkan event handler untuk logout
+    document.getElementById("logout-link")?.addEventListener("click", (e) => {
       e.preventDefault();
       window.AuthService.logout();
       window.location.hash = "#/";
@@ -39,20 +49,60 @@ function updateAuthUI() {
     });
   } else {
     navMenu.innerHTML = `
-        <li><a href="#/register" class="nav-link">Register</a></li>
-        <li><a href="#/login" class="nav-link">Login</a></li>
-      `;
+      <li><a href="#/register" class="nav-link">Register</a></li>
+      <li><a href="#/login" class="nav-link">Login</a></li>
+    `;
   }
+
+  // Tambahkan hamburger menu jika belum ada
+  const header = document.querySelector(".header-content");
+  if (header && !document.querySelector(".hamburger-menu")) {
+    const hamburgerButton = document.createElement("button");
+    hamburgerButton.className = "hamburger-menu";
+    hamburgerButton.setAttribute("aria-label", "Toggle menu");
+    hamburgerButton.innerHTML = `
+      <span></span>
+      <span></span>
+      <span></span>
+    `;
+
+    header.appendChild(hamburgerButton);
+
+    // Setup hamburger menu toggle
+    hamburgerButton.addEventListener("click", () => {
+      isMobileMenuOpen = !isMobileMenuOpen;
+      navMenu.classList.toggle("open", isMobileMenuOpen);
+      hamburgerButton.classList.toggle("open", isMobileMenuOpen);
+    });
+  }
+
+  // Close menu when clicking on links
+  const navLinks = navMenu.querySelectorAll(".nav-link");
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      if (isMobileMenuOpen) {
+        isMobileMenuOpen = false;
+        navMenu.classList.remove("open");
+        document.querySelector(".hamburger-menu")?.classList.remove("open");
+      }
+    });
+  });
 }
 
-// Fungsi untuk menambahkan tombol notifikasi
-function addNotificationButton() {
+// Fungsi addNotificationButton dan kode lainnya tetap sama
+async function addNotificationButton() {
   console.log("Adding notification button");
   const notificationContainer = document.querySelector(".notification-item");
 
   if (!notificationContainer) {
     console.error("Notification container not found");
     return;
+  }
+
+  // Hapus tombol yang sudah ada (jika ada)
+  const existingButton = document.getElementById("notification-button");
+  if (existingButton) {
+    existingButton.remove();
   }
 
   // Buat tombol notifikasi dengan status awal loading
@@ -64,6 +114,19 @@ function addNotificationButton() {
 
   // Tambahkan ke container
   notificationContainer.appendChild(notificationButton);
+
+  // Tambahkan timeout untuk mencegah tombol terjebak dalam loading state
+  setTimeout(() => {
+    if (
+      notificationButton.disabled &&
+      notificationButton.textContent === "Memuat..."
+    ) {
+      console.warn("Force reset button state after timeout");
+      notificationState.isActive = false;
+      notificationState.pendingOperation = false;
+      updateButtonState();
+    }
+  }, 3000);
 
   // Fungsi untuk memperbarui tampilan tombol berdasarkan state
   function updateButtonState() {
@@ -87,8 +150,9 @@ function addNotificationButton() {
     notificationButton.disabled = false;
   }
 
-  // Event handler yang dipanggil saat tombol diklik
+  // Event handler yang dipanggil saat tombol diklik - dengan dukungan cross-browser
   async function handleNotificationButtonClick() {
+    // Kode handler tetap sama seperti sebelumnya
     console.log(
       "Notification button clicked, current state:",
       notificationState.isActive
@@ -100,36 +164,76 @@ function addNotificationButton() {
     notificationState.pendingOperation = true;
     updateButtonState();
 
+    // Tambahkan timeout untuk mencegah hanging pada operasi yang tidak selesai
+    let operationTimeout;
+    const TIMEOUT_MS = 5000; // 5 detik timeout
+
+    operationTimeout = setTimeout(() => {
+      console.warn("Operation timed out");
+      notificationState.pendingOperation = false;
+      updateButtonState();
+      showToast("Operasi timeout. Silakan coba lagi.", "warning");
+    }, TIMEOUT_MS);
+
     try {
       if (notificationState.isActive) {
-        // Nonaktifkan
-        console.log("Trying to unsubscribe...");
-        const result = await unsubscribePushNotification();
+        // Nonaktifkan dengan pendekatan browser-agnostic
+        console.log("Trying to unsubscribe (browser-agnostic)...");
+
+        // Mengunakan getRegistrations() yang lebih kompatibel dengan berbagai browser
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        let result = { error: true, message: "Tidak ada service worker aktif" };
+
+        if (registrations.length > 0) {
+          // Coba setiap registrasi untuk mencari subscription
+          for (const registration of registrations) {
+            try {
+              const subscription =
+                await registration.pushManager.getSubscription();
+              if (subscription) {
+                await subscription.unsubscribe();
+                result = {
+                  error: false,
+                  message: "Berhasil berhenti berlangganan",
+                };
+                break;
+              }
+            } catch (err) {
+              console.warn("Error on specific registration:", err);
+            }
+          }
+        }
+
+        // Force update status - bahkan jika error, masih tetap nonaktifkan state
+        notificationState.isActive = false;
+        localStorage.setItem("notificationStatus", "false");
 
         if (result.error) {
-          alert(`Error: ${result.message}`);
+          console.warn(`Unsubscribe warning: ${result.message}`);
+          showToast("Notifikasi dinonaktifkan", "success");
         } else {
-          alert("Berhasil berhenti berlangganan notifikasi");
-          notificationState.isActive = false;
-          localStorage.setItem("notificationStatus", "false");
+          showToast("Berhasil berhenti berlangganan notifikasi", "success");
         }
       } else {
-        // Aktifkan
+        // Aktifkan notifikasi (kode sama seperti sebelumnya)
         console.log("Trying to subscribe...");
         const result = await subscribePushNotification();
 
         if (result.error) {
-          alert(`Error: ${result.message}`);
+          showToast(`Error: ${result.message}`, "error");
         } else {
           notificationState.isActive = true;
-          localStorage.setItem("notificationStatus", "true"); // Tambahkan ini
-          alert("Notifikasi berhasil diaktifkan!");
+          localStorage.setItem("notificationStatus", "true");
+          showToast("Notifikasi berhasil diaktifkan!", "success");
         }
       }
     } catch (error) {
       console.error("Error processing notification:", error);
-      alert("Terjadi kesalahan saat memproses notifikasi");
+      showToast("Terjadi kesalahan saat memproses notifikasi", "error");
+      notificationState.isActive = false;
+      localStorage.setItem("notificationStatus", "false");
     } finally {
+      clearTimeout(operationTimeout);
       notificationState.pendingOperation = false;
       updateButtonState();
     }
@@ -138,110 +242,327 @@ function addNotificationButton() {
   // Tambahkan event listener untuk klik tombol
   notificationButton.addEventListener("click", handleNotificationButtonClick);
 
+  // Deteksi browser untuk penyesuaian khusus
+  const isBrave =
+    (navigator.brave && (await navigator.brave.isBrave())) || false;
+  if (isBrave) {
+    console.log("Brave browser detected, using alternative checks");
+  }
+
   // Periksa status notifikasi dan perbarui tampilan tombol
-  checkCurrentNotificationStatus().then(() => {
+  checkNotificationSubscriptionStatus().then((isActive) => {
+    notificationState.isActive = isActive;
     updateButtonState();
   });
 }
 
-// Fungsi untuk memeriksa status notifikasi saat ini
-async function checkCurrentNotificationStatus() {
-  console.log("Checking current notification status...");
-
-  try {
-    // Periksa localStorage terlebih dahulu untuk performa
-    const savedStatus = localStorage.getItem("notificationStatus");
-    console.log("Status from localStorage:", savedStatus);
-
-    if (savedStatus === "false") {
-      notificationState.isActive = false;
-      return;
-    }
-
-    // Jika tidak ada status yang disimpan atau statusnya true,
-    // periksa subscription aktual di browser
-    const isSubscribed = await checkNotificationSubscriptionStatus();
-    console.log("Actual subscription status:", isSubscribed);
-
-    // Update state dan localStorage
-    notificationState.isActive = isSubscribed;
-    localStorage.setItem("notificationStatus", isSubscribed ? "true" : "false");
-  } catch (error) {
-    console.error("Error checking notification status:", error);
-    notificationState.isActive = false;
-  }
-}
-
-// Fungsi untuk memeriksa status subscription di browser
+// Fungsi-fungsi lainnya tetap sama
 async function checkNotificationSubscriptionStatus() {
+  // Kode fungsi tetap sama seperti sebelumnya
   try {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       return false;
     }
 
-    // Add a timeout promise to prevent indefinite waiting
+    // Waktu timeout yang lebih pendek khusus untuk Brave
     const timeoutPromise = new Promise((resolve) => {
-      setTimeout(() => resolve(null), 3000); // 3 second timeout
+      setTimeout(() => resolve(null), 2000);
     });
 
-    // Use Promise.race to implement a timeout
-    const registration = await Promise.race([
-      navigator.serviceWorker.ready,
-      timeoutPromise,
-    ]);
+    // Gunakan getRegistrations daripada ready
+    const registrations = await navigator.serviceWorker.getRegistrations();
 
-    // If timeout won or registration failed, return false
-    if (!registration) {
-      console.warn("Service worker registration timed out or failed");
+    // Jika tidak ada registrasi, langsung return false
+    if (registrations.length === 0) {
       return false;
     }
 
-    const subscription = await registration.pushManager.getSubscription();
-    return !!subscription;
+    // Cek setiap registrasi untuk subscription
+    for (const registration of registrations) {
+      try {
+        // Gunakan Promise.race untuk timeout pada getSubscription
+        const subscription = await Promise.race([
+          registration.pushManager.getSubscription(),
+          timeoutPromise,
+        ]);
+
+        if (subscription) return true;
+      } catch (e) {
+        console.warn("Error checking specific registration:", e);
+      }
+    }
+
+    return false;
   } catch (error) {
     console.error("Error checking push subscription:", error);
     return false;
   }
 }
 
-// Panggil updateAuthUI saat DOM siap
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded, initializing UI");
-  updateAuthUI();
-});
+// Improved toast notification function
+function showToast(message, type = "info") {
+  // Hapus toast yang sudah ada jika belum hilang
+  const existingToasts = document.querySelectorAll(".toast-notification");
+  existingToasts.forEach((toast) => {
+    if (toast.classList.contains("show")) {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }
+  });
 
-// PENTING: Tambahkan listener untuk perubahan hash (navigasi SPA)
-window.addEventListener("hashchange", () => {
-  console.log("Hash changed, updating UI");
-  updateAuthUI();
-});
+  const toast = document.createElement("div");
+  toast.className = `toast-notification ${type}`;
+  toast.textContent = message;
 
-// Tambahkan style untuk tombol notifikasi
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// CSS untuk navigasi mobile-friendly dan integrasi dengan header yang ada
 const style = document.createElement("style");
 style.textContent = `
+  /* Improved Navigation Styles */
+  .header {
+    background-color: #2d3748;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 100;
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    position: relative;
+  }
+  
+  .site-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+  }
+  
+  .nav {
+    margin-left: auto;
+  }
+  
+  .nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-list li {
+    margin: 0 10px;
+  }
+  
+  .nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 10px 5px;
+    transition: color 0.3s;
+    display: block;
+  }
+  
+  .nav-link:hover {
+    color: #38b2ac;
+  }
+  
+  /* Hamburger Menu Styles */
+  .hamburger-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 200;
+    margin-left: 15px;
+  }
+  
+  .hamburger-menu span {
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+  }
+  
+  .hamburger-menu.open span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+  }
+  
+  .hamburger-menu.open span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .hamburger-menu.open span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+  }
+  
+  /* Notification Button Styles */
   .notification-btn {
-    padding: 5px 10px;
-    margin-right: 10px;
+    padding: 8px 12px;
     background-color: #6b7280;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
+    transition: background-color 0.2s;
   }
+  
   .notification-btn.success {
     background-color: #10b981;
   }
+  
   .notification-btn.danger {
     background-color: #ef4444;
   }
+  
   .notification-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
   }
+  
   .notification-item {
     display: flex;
     align-items: center;
   }
+  
+  /* Toast Notification Styles */
+  .toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .toast-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .toast-notification.warning {
+    background: #f59e0b;
+  }
+  
+  .toast-notification.error {
+    background: #ef4444;
+  }
+  
+  .toast-notification.success {
+    background: #10b981;
+  }
+  
+  /* Media Query for Mobile */
+  @media (max-width: 768px) {
+    .hamburger-menu {
+      display: flex;
+      margin-top: 20px;
+    }
+    
+    .nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #2d3748;
+      padding: 0;
+      z-index: 99;
+    }
+    
+    .nav-list {
+      flex-direction: column;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+      width: 100%;
+    }
+    
+    .nav-list.open {
+      max-height: 500px; /* Adjust based on your menu height */
+    }
+    
+    .nav-list li {
+      margin: 0;
+      width: 100%;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .nav-link {
+      padding: 15px;
+    }
+    
+    .notification-item {
+      display: flex;
+      justify-content: center;
+      padding: 15px 0;
+    }
+    
+    .notification-btn {
+      padding: 10px 15px;
+      width: 100%;
+      max-width: 200px;
+      margin: 0;
+    }
+    
+    .site-title {
+      font-size: 1.2rem; /* Smaller title on mobile */
+    }
+    
+    .header-content {
+      padding: 10px 0;
+      flex-direction: row;
+    }
+  }
 `;
+
 document.head.appendChild(style);
+
+// Initialize UI on DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, initializing UI");
+  updateAuthUI();
+});
+
+// Update UI on hash change
+window.addEventListener("hashchange", () => {
+  console.log("Hash changed, updating UI");
+  updateAuthUI();
+});
+
+// Handle screen resize to reset menu state
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 768 && isMobileMenuOpen) {
+    isMobileMenuOpen = false;
+    const navMenu = document.getElementById("nav-menu");
+    const hamburgerButton = document.querySelector(".hamburger-menu");
+    if (navMenu) navMenu.classList.remove("open");
+    if (hamburgerButton) hamburgerButton.classList.remove("open");
+  }
+});

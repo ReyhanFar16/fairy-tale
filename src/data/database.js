@@ -7,7 +7,6 @@ const FAVORITES_STORE = "favorites";
 
 const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
   upgrade: (database) => {
-    // Create stories store if it doesn't exist
     if (!database.objectStoreNames.contains(STORIES_STORE)) {
       const storyStore = database.createObjectStore(STORIES_STORE, {
         keyPath: "id",
@@ -15,7 +14,6 @@ const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
       storyStore.createIndex("by_date", "createdAt", { unique: false });
     }
 
-    // Create favorites store if it doesn't exist
     if (!database.objectStoreNames.contains(FAVORITES_STORE)) {
       const favoritesStore = database.createObjectStore(FAVORITES_STORE, {
         keyPath: "id",
@@ -26,7 +24,6 @@ const dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
 });
 
 const FairyTaleDB = {
-  // Stories methods
   async saveStory(story) {
     if (!Object.hasOwn(story, "id")) {
       throw new Error(`'id' is required to save a story`);
@@ -72,23 +69,18 @@ const FairyTaleDB = {
       throw new Error(`'id' is required to delete story`);
     }
 
-    // Also remove from favorites if it exists there
     try {
       await this.removeFavorite(id);
-    } catch (e) {
-      // Ignore if not in favorites
-    }
+    } catch (e) {}
 
     return (await dbPromise).delete(STORIES_STORE, id);
   },
 
-  // Favorites methods
   async saveFavorite(story) {
     if (!Object.hasOwn(story, "id")) {
       throw new Error(`'id' is required to save a favorite`);
     }
 
-    // Add timestamp for when saved as favorite
     const favoriteStory = {
       ...story,
       savedAt: story.savedAt || new Date().toISOString(),
@@ -117,7 +109,6 @@ const FairyTaleDB = {
     return (await dbPromise).delete(FAVORITES_STORE, id);
   },
 
-  // Utility methods
   async storyExists(id) {
     if (!id) return false;
 
