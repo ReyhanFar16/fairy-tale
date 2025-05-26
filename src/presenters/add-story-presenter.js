@@ -1,6 +1,7 @@
 import StoryApi from "../utils/api.js";
 import StoryMap from "../utils/map.js";
 import MediaStreamUtil from "../utils/media-stream.js";
+import { showLocalNotification } from "../utils/notification-helper.js";
 
 class AddStoryPresenter {
   #view;
@@ -106,7 +107,19 @@ class AddStoryPresenter {
       if (response.error) {
         this.#view.showErrorMessage(response.message);
       } else {
-        alert("Story shared successfully!");
+        // Tampilkan notifikasi setelah story berhasil dibagikan
+        const notificationShown = await showLocalNotification({
+          title: "Story Shared Successfully!",
+          body: "Your story has been shared with the community",
+          data: { url: "#/stories" },
+          requireInteraction: true,
+        });
+
+        // Jika notifikasi tidak bisa ditampilkan, gunakan alert sebagai fallback
+        if (!notificationShown) {
+          alert("Story shared successfully!");
+        }
+
         window.location.hash = "#/stories";
       }
     } catch (error) {

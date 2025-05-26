@@ -3,6 +3,7 @@ const config = require("./webpack.config");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { merge } = require("webpack-merge");
+const { InjectManifest } = require("workbox-webpack-plugin");
 
 module.exports = merge(config, {
   mode: "production",
@@ -15,6 +16,11 @@ module.exports = merge(config, {
   plugins: [
     new MiniCssExtractPlugin({
       filename: "main.[contenthash].css",
+    }),
+    new InjectManifest({
+      swSrc: path.resolve(__dirname, "src/sw.js"),
+      swDest: "sw.bundle.js",
+      exclude: [/sw\.js$/],
     }),
   ],
 

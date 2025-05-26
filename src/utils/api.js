@@ -4,6 +4,8 @@ class StoryApi {
   static BASE_URL = "https://story-api.dicoding.dev/v1";
   static GUEST_API_URL = `${this.BASE_URL}/stories/guest`;
   static AUTH_API_URL = `${this.BASE_URL}/stories`;
+  static SUBSCRIBE = `${this.BASE_URL}/notifications/subscribe`;
+  static UNSUBSCRIBE = `${this.BASE_URL}/notifications/unsubscribe`;
 
   static async fetchWithErrorHandling(url, options = {}) {
     try {
@@ -194,6 +196,84 @@ class StoryApi {
       return {
         error: true,
         message: error.message || "Failed to submit story",
+      };
+    }
+  }
+
+  // ...existing code...
+
+  /**
+   * Mendaftarkan subscription push notification ke server
+   * @param {Object} subscription - Data subscription
+   */
+  static async subscribePushNotification({ endpoint, keys }) {
+    try {
+      if (!AuthService.isLoggedIn()) {
+        return {
+          error: true,
+          message: "Autentikasi diperlukan untuk berlangganan notifikasi",
+        };
+      }
+
+      const { data } = await this.fetchWithErrorHandling(this.SUBSCRIBE, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          endpoint,
+          keys,
+        }),
+      });
+
+      return {
+        error: false,
+        message: "Berhasil berlangganan notifikasi",
+      };
+    } catch (error) {
+      console.error("Error saat berlangganan push notification:", error);
+      return {
+        error: true,
+        message: error.message || "Gagal berlangganan notifikasi",
+      };
+    }
+  }
+
+  /**
+   * Berhenti berlangganan push notification
+   * @param {Object} data - Data endpoint
+   */
+  static async unsubscribePushNotification({ endpoint }) {
+    try {
+      if (!AuthService.isLoggedIn()) {
+        return {
+          error: true,
+          message: "Autentikasi diperlukan untuk berhenti berlangganan",
+        };
+      }
+
+      const { data } = await this.fetchWithErrorHandling(this.UNSUBSCRIBE, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          endpoint,
+        }),
+      });
+
+      return {
+        error: false,
+        message: "Berhasil berhenti berlangganan notifikasi",
+      };
+    } catch (error) {
+      console.error(
+        "Error saat berhenti berlangganan push notification:",
+        error
+      );
+      return {
+        error: true,
+        message: error.message || "Gagal berhenti berlangganan notifikasi",
       };
     }
   }
