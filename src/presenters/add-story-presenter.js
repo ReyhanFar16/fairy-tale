@@ -107,7 +107,6 @@ class AddStoryPresenter {
       if (response.error) {
         this.#view.showErrorMessage(response.message);
       } else {
-        // Tampilkan notifikasi setelah story berhasil dibagikan
         const notificationShown = await showLocalNotification({
           title: "Story Shared Successfully!",
           body: "Your story has been shared with the community",
@@ -115,7 +114,6 @@ class AddStoryPresenter {
           requireInteraction: true,
         });
 
-        // Jika notifikasi tidak bisa ditampilkan, gunakan alert sebagai fallback
         if (!notificationShown) {
           alert("Story shared successfully!");
         }

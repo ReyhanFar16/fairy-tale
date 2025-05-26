@@ -29,8 +29,6 @@ async function registerServiceWorker() {
   return null;
 }
 
-// Initialize when DOM is ready
 window.addEventListener("DOMContentLoaded", async () => {
   await registerServiceWorker();
-  // Removed initializeSubscriptionButton() - now handled by nav.js
 });

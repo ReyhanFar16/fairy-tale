@@ -76,7 +76,6 @@ class StoryDetailPage {
         }, 100);
       }
 
-      // Add event listener to favorite button
       const favoriteBtn = this.#container.querySelector("#favorite-btn");
       if (favoriteBtn) {
         favoriteBtn.addEventListener("click", () => {
@@ -95,7 +94,6 @@ class StoryDetailPage {
     return this.#container;
   }
 
-  // New method to toggle favorite status
   async #toggleFavorite(story) {
     const favoriteBtn = this.#container.querySelector("#favorite-btn");
     if (favoriteBtn) {
@@ -103,7 +101,6 @@ class StoryDetailPage {
 
       try {
         if (this.#isFavorite) {
-          // Remove from favorites
           await this.#presenter.removeFromFavorites();
           this.#isFavorite = false;
           favoriteBtn.className = "btn btn-primary";
@@ -111,7 +108,6 @@ class StoryDetailPage {
             '<i class="far fa-heart"></i> Add to Favorites';
           this.showNotification("Removed from favorites");
         } else {
-          // Add to favorites
           await this.#presenter.addToFavorites();
           this.#isFavorite = true;
           favoriteBtn.className = "btn btn-success";
@@ -127,12 +123,10 @@ class StoryDetailPage {
     }
   }
 
-  // Set favorite status (called from presenter)
   setFavoriteStatus(isFavorite) {
     this.#isFavorite = isFavorite;
   }
 
-  // Show notification for user feedback
   showNotification(message, type = "success") {
     const notificationContainer = document.createElement("div");
     notificationContainer.className = `notification ${type}`;
@@ -140,7 +134,6 @@ class StoryDetailPage {
 
     document.body.appendChild(notificationContainer);
 
-    // Remove notification after 3 seconds
     setTimeout(() => {
       notificationContainer.classList.add("hide");
       setTimeout(() => {

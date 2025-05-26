@@ -8,10 +8,8 @@ import {
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
-// Precache all assets in the manifest
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Cache Google Fonts
 registerRoute(
   ({ url }) =>
     url.origin === "https://fonts.googleapis.com" ||
@@ -21,13 +19,12 @@ registerRoute(
     plugins: [
       new ExpirationPlugin({
         maxEntries: 30,
-        maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+        maxAgeSeconds: 60 * 60 * 24 * 365,
       }),
     ],
   })
 );
 
-// Cache static assets (CSS, JS)
 registerRoute(
   ({ request }) =>
     request.destination === "script" || request.destination === "style",
@@ -36,7 +33,6 @@ registerRoute(
   })
 );
 
-// Cache images with Cache First strategy
 registerRoute(
   ({ request }) => request.destination === "image",
   new CacheFirst({
@@ -44,7 +40,7 @@ registerRoute(
     plugins: [
       new ExpirationPlugin({
         maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+        maxAgeSeconds: 30 * 24 * 60 * 60,
       }),
       new CacheableResponsePlugin({
         statuses: [0, 200],
@@ -53,7 +49,6 @@ registerRoute(
   })
 );
 
-// Use Network First for API requests
 registerRoute(
   ({ url }) => url.origin === "https://story-api.dicoding.dev",
   new NetworkFirst({
@@ -61,13 +56,12 @@ registerRoute(
     plugins: [
       new ExpirationPlugin({
         maxEntries: 50,
-        maxAgeSeconds: 60 * 60, // 1 hour
+        maxAgeSeconds: 60 * 60,
       }),
     ],
   })
 );
 
-// Handle navigation requests - offline fallback
 registerRoute(
   ({ request }) => request.mode === "navigate",
   new NetworkFirst({
@@ -75,13 +69,12 @@ registerRoute(
     plugins: [
       new ExpirationPlugin({
         maxEntries: 25,
-        maxAgeSeconds: 24 * 60 * 60, // 1 day
+        maxAgeSeconds: 24 * 60 * 60,
       }),
     ],
   })
 );
 
-// Handle push notifications
 self.addEventListener("push", (event) => {
   console.log("Push notification received", event);
 
@@ -108,7 +101,6 @@ self.addEventListener("push", (event) => {
   );
 });
 
-// Handle notification clicks
 self.addEventListener("notificationclick", (event) => {
   console.log("Notification clicked", event);
   event.notification.close();

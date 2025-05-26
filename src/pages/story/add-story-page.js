@@ -123,7 +123,6 @@ class AddStoryPage {
     const closeButton = document.getElementById("close-camera");
     const canvas = document.getElementById("photo-canvas");
 
-    // Get the MediaStreamUtil instance from presenter
     const mediaStream = this.#presenter.getMediaStream();
     const cameraStarted = await mediaStream.startCamera(video);
 

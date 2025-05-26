@@ -163,7 +163,6 @@ class StoryApi {
       console.log("Location data in request:", { lat, lon });
 
       if (lat !== null && lon !== null) {
-        // Convert to numbers
         const latNum = parseFloat(lat);
         const lonNum = parseFloat(lon);
 
@@ -199,8 +198,6 @@ class StoryApi {
       };
     }
   }
-
-  // ...existing code...
 
   /**
    * Mendaftarkan subscription push notification ke server

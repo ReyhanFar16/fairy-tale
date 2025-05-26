@@ -4,28 +4,22 @@ import {
   isNotificationEnabled,
 } from "./utils/notification-helper.js";
 
-// Simpan state notifikasi untuk dipertahankan antar navigasi
 let notificationState = {
   isActive:
     localStorage.getItem("notificationStatus") === "true" ? true : false,
   pendingOperation: false,
 };
 
-// Variabel untuk mengontrol state menu di mobile
 let isMobileMenuOpen = false;
 
-// Fungsi untuk memperbarui UI navigasi
 function updateAuthUI() {
-  // Gunakan elemen nav yang sudah ada di HTML alih-alih membuat elemen baru
   const navMenu = document.getElementById("nav-menu");
 
-  // Jika tidak ditemukan, keluar dari fungsi
   if (!navMenu) {
     console.error("Navigation menu element not found");
     return;
   }
 
-  // Perbarui menu sesuai dengan status login
   if (window.AuthService && window.AuthService.isLoggedIn()) {
     navMenu.innerHTML = `
       <li class="notification-item"></li>
@@ -37,10 +31,8 @@ function updateAuthUI() {
       <li><a href="#" class="nav-link" id="logout-link">Logout</a></li>
     `;
 
-    // Tambahkan tombol notifikasi
     addNotificationButton();
 
-    // Tambahkan event handler untuk logout
     document.getElementById("logout-link")?.addEventListener("click", (e) => {
       e.preventDefault();
       window.AuthService.logout();
@@ -54,7 +46,6 @@ function updateAuthUI() {
     `;
   }
 
-  // Tambahkan hamburger menu jika belum ada
   const header = document.querySelector(".header-content");
   if (header && !document.querySelector(".hamburger-menu")) {
     const hamburgerButton = document.createElement("button");
@@ -68,7 +59,6 @@ function updateAuthUI() {
 
     header.appendChild(hamburgerButton);
 
-    // Setup hamburger menu toggle
     hamburgerButton.addEventListener("click", () => {
       isMobileMenuOpen = !isMobileMenuOpen;
       navMenu.classList.toggle("open", isMobileMenuOpen);
@@ -76,7 +66,6 @@ function updateAuthUI() {
     });
   }
 
-  // Close menu when clicking on links
   const navLinks = navMenu.querySelectorAll(".nav-link");
   navLinks.forEach((link) => {
     link.addEventListener("click", () => {
@@ -89,7 +78,6 @@ function updateAuthUI() {
   });
 }
 
-// Fungsi addNotificationButton dan kode lainnya tetap sama
 async function addNotificationButton() {
   console.log("Adding notification button");
   const notificationContainer = document.querySelector(".notification-item");
@@ -99,23 +87,19 @@ async function addNotificationButton() {
     return;
   }
 
-  // Hapus tombol yang sudah ada (jika ada)
   const existingButton = document.getElementById("notification-button");
   if (existingButton) {
     existingButton.remove();
   }
 
-  // Buat tombol notifikasi dengan status awal loading
   const notificationButton = document.createElement("button");
   notificationButton.id = "notification-button";
   notificationButton.className = "notification-btn";
   notificationButton.textContent = "Memuat...";
   notificationButton.disabled = true;
 
-  // Tambahkan ke container
   notificationContainer.appendChild(notificationButton);
 
-  // Tambahkan timeout untuk mencegah tombol terjebak dalam loading state
   setTimeout(() => {
     if (
       notificationButton.disabled &&
@@ -128,7 +112,6 @@ async function addNotificationButton() {
     }
   }, 3000);
 
-  // Fungsi untuk memperbarui tampilan tombol berdasarkan state
   function updateButtonState() {
     console.log("Updating button state, active:", notificationState.isActive);
 
@@ -150,23 +133,19 @@ async function addNotificationButton() {
     notificationButton.disabled = false;
   }
 
-  // Event handler yang dipanggil saat tombol diklik - dengan dukungan cross-browser
   async function handleNotificationButtonClick() {
-    // Kode handler tetap sama seperti sebelumnya
     console.log(
       "Notification button clicked, current state:",
       notificationState.isActive
     );
 
-    // Jika sedang proses, abaikan klik
     if (notificationState.pendingOperation) return;
 
     notificationState.pendingOperation = true;
     updateButtonState();
 
-    // Tambahkan timeout untuk mencegah hanging pada operasi yang tidak selesai
     let operationTimeout;
-    const TIMEOUT_MS = 5000; // 5 detik timeout
+    const TIMEOUT_MS = 5000;
 
     operationTimeout = setTimeout(() => {
       console.warn("Operation timed out");
@@ -177,15 +156,12 @@ async function addNotificationButton() {
 
     try {
       if (notificationState.isActive) {
-        // Nonaktifkan dengan pendekatan browser-agnostic
         console.log("Trying to unsubscribe (browser-agnostic)...");
 
-        // Mengunakan getRegistrations() yang lebih kompatibel dengan berbagai browser
         const registrations = await navigator.serviceWorker.getRegistrations();
         let result = { error: true, message: "Tidak ada service worker aktif" };
 
         if (registrations.length > 0) {
-          // Coba setiap registrasi untuk mencari subscription
           for (const registration of registrations) {
             try {
               const subscription =
@@ -204,7 +180,6 @@ async function addNotificationButton() {
           }
         }
 
-        // Force update status - bahkan jika error, masih tetap nonaktifkan state
         notificationState.isActive = false;
         localStorage.setItem("notificationStatus", "false");
 
@@ -215,7 +190,6 @@ async function addNotificationButton() {
           showToast("Berhasil berhenti berlangganan notifikasi", "success");
         }
       } else {
-        // Aktifkan notifikasi (kode sama seperti sebelumnya)
         console.log("Trying to subscribe...");
         const result = await subscribePushNotification();
 
@@ -239,48 +213,38 @@ async function addNotificationButton() {
     }
   }
 
-  // Tambahkan event listener untuk klik tombol
   notificationButton.addEventListener("click", handleNotificationButtonClick);
 
-  // Deteksi browser untuk penyesuaian khusus
   const isBrave =
     (navigator.brave && (await navigator.brave.isBrave())) || false;
   if (isBrave) {
     console.log("Brave browser detected, using alternative checks");
   }
 
-  // Periksa status notifikasi dan perbarui tampilan tombol
   checkNotificationSubscriptionStatus().then((isActive) => {
     notificationState.isActive = isActive;
     updateButtonState();
   });
 }
 
-// Fungsi-fungsi lainnya tetap sama
 async function checkNotificationSubscriptionStatus() {
-  // Kode fungsi tetap sama seperti sebelumnya
   try {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       return false;
     }
 
-    // Waktu timeout yang lebih pendek khusus untuk Brave
     const timeoutPromise = new Promise((resolve) => {
       setTimeout(() => resolve(null), 2000);
     });
 
-    // Gunakan getRegistrations daripada ready
     const registrations = await navigator.serviceWorker.getRegistrations();
 
-    // Jika tidak ada registrasi, langsung return false
     if (registrations.length === 0) {
       return false;
     }
 
-    // Cek setiap registrasi untuk subscription
     for (const registration of registrations) {
       try {
-        // Gunakan Promise.race untuk timeout pada getSubscription
         const subscription = await Promise.race([
           registration.pushManager.getSubscription(),
           timeoutPromise,
@@ -299,9 +263,7 @@ async function checkNotificationSubscriptionStatus() {
   }
 }
 
-// Improved toast notification function
 function showToast(message, type = "info") {
-  // Hapus toast yang sudah ada jika belum hilang
   const existingToasts = document.querySelectorAll(".toast-notification");
   existingToasts.forEach((toast) => {
     if (toast.classList.contains("show")) {
@@ -326,10 +288,8 @@ function showToast(message, type = "info") {
   }, 3000);
 }
 
-// CSS untuk navigasi mobile-friendly dan integrasi dengan header yang ada
 const style = document.createElement("style");
 style.textContent = `
-  /* Improved Navigation Styles */
   .header {
     background-color: #2d3748;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -544,19 +504,16 @@ style.textContent = `
 
 document.head.appendChild(style);
 
-// Initialize UI on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded, initializing UI");
   updateAuthUI();
 });
 
-// Update UI on hash change
 window.addEventListener("hashchange", () => {
   console.log("Hash changed, updating UI");
   updateAuthUI();
 });
 
-// Handle screen resize to reset menu state
 window.addEventListener("resize", () => {
   if (window.innerWidth > 768 && isMobileMenuOpen) {
     isMobileMenuOpen = false;

@@ -10,10 +10,8 @@ class FavoritesPresenter {
 
   async init() {
     try {
-      // Fetch favorites from IndexedDB
       this.#favorites = await FairyTaleDB.getAllFavorites();
 
-      // Update the view
       this.#view.hideLoadingIndicator();
       this.#view.populateFavorites(this.#favorites);
     } catch (error) {
@@ -25,13 +23,10 @@ class FavoritesPresenter {
 
   async removeFavorite(id) {
     try {
-      // Remove from IndexedDB
       await FairyTaleDB.removeFavorite(id);
 
-      // Update local data
       this.#favorites = this.#favorites.filter((story) => story.id !== id);
 
-      // Update the view
       this.#view.hideLoadingIndicator();
       this.#view.populateFavorites(this.#favorites);
 

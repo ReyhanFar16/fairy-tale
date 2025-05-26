@@ -27,7 +27,6 @@ async function subscribePushNotification() {
       return { error: true, message: "Browser tidak mendukung Push API" };
     }
 
-    // Cek permission notifikasi terlebih dahulu
     if (Notification.permission !== "granted") {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -35,13 +34,11 @@ async function subscribePushNotification() {
       }
     }
 
-    // Tunggu service worker registration
     console.log("Menunggu service worker ready...");
     const registration = await navigator.serviceWorker.ready;
     console.log("Service worker ready, registrasi:", registration);
 
     try {
-      // Coba subscribe ke push service
       console.log("Mencoba subscribe ke push service...");
       const vapidPublicKey =
         "BCCs2eonMI-6H2ctvFaWg-UYdDv387Vno_bzUzALpB442r2lCnsHmtrx8biyPi_E-1fSGABK_Qs_GlvPoJJqxbk";
@@ -54,7 +51,6 @@ async function subscribePushNotification() {
 
       console.log("Berhasil subscribe:", subscription);
 
-      // Kirim ke server
       const subscriptionJSON = subscription.toJSON();
 
       const result = await StoryApi.subscribePushNotification({
@@ -83,7 +79,6 @@ let notificationPreference = {
   enabled: true,
 };
 
-// Perbaikan fungsi unsubscribe
 async function unsubscribePushNotification() {
   try {
     console.log("Starting unsubscribe process");
@@ -92,22 +87,18 @@ async function unsubscribePushNotification() {
       return { error: true, message: "Browser tidak mendukung Service Worker" };
     }
 
-    // Gunakan getRegistrations untuk mendapatkan semua registrasi
     const registrations = await navigator.serviceWorker.getRegistrations();
     console.log(`Found ${registrations.length} registrations`);
 
     if (registrations.length === 0) {
-      // Tidak ada registrasi, anggap berhasil unsubscribe
       localStorage.setItem("notificationStatus", "false");
       return { error: false, message: "Tidak ada service worker aktif" };
     }
 
     let unsubscribed = false;
 
-    // Coba setiap registrasi
     for (const registration of registrations) {
       try {
-        // Gunakan timeout untuk menghindari hanging
         const timeoutPromise = new Promise((resolve) => {
           setTimeout(() => resolve(null), 2000);
         });
@@ -127,7 +118,6 @@ async function unsubscribePushNotification() {
       }
     }
 
-    // Selalu update status di localStorage, bahkan jika ada error
     localStorage.setItem("notificationStatus", "false");
 
     return {
@@ -138,7 +128,6 @@ async function unsubscribePushNotification() {
     };
   } catch (error) {
     console.error("Error saat unsubscribe:", error);
-    // Selalu update status di localStorage, bahkan jika ada error
     localStorage.setItem("notificationStatus", "false");
 
     return {
@@ -148,22 +137,73 @@ async function unsubscribePushNotification() {
   }
 }
 
-// Perbarui fungsi showLocalNotification
 async function showLocalNotification(options = {}) {
-  // Tambahkan pengecekan preference
   if (!notificationPreference.enabled) {
     console.log("Notifikasi dinonaktifkan oleh pengguna");
     return false;
   }
 
   try {
-    // Kode yang sudah ada...
+    if (!("serviceWorker" in navigator) || !("Notification" in window)) {
+      console.error(
+        "Browser tidak mendukung Service Worker atau Notification API"
+      );
+      return false;
+    }
+
+    if (Notification.permission !== "granted") {
+      console.log("Izin notifikasi belum diberikan, meminta izin...");
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        console.log("Izin notifikasi ditolak");
+        return false;
+      }
+    }
+
+    const defaultOptions = {
+      title: "Fairy Tale",
+      body: "Ada pembaruan baru untuk Anda!",
+      icon: "/public/icons/icon-192x192.png",
+      badge: "/public/icons/badge-72x72.png",
+      vibrate: [100, 50, 100],
+      data: {
+        url: window.location.origin,
+        dateOfArrival: Date.now(),
+      },
+      actions: [
+        {
+          action: "open",
+          title: "Buka Aplikasi",
+        },
+      ],
+      requireInteraction: true,
+    };
+
+    const notificationOptions = { ...defaultOptions, ...options };
+
+    const registration = await navigator.serviceWorker.ready;
+
+    await registration.showNotification(notificationOptions.title, {
+      body: notificationOptions.body,
+      icon: notificationOptions.icon,
+      badge: notificationOptions.badge,
+      vibrate: notificationOptions.vibrate,
+      data: notificationOptions.data,
+      actions: notificationOptions.actions,
+      requireInteraction: notificationOptions.requireInteraction,
+      tag: notificationOptions.tag || "fairy-tale-notification",
+      renotify: notificationOptions.renotify || false,
+      silent: notificationOptions.silent || false,
+    });
+
+    console.log("Notifikasi berhasil ditampilkan");
+    return true;
   } catch (error) {
-    // ...
+    console.error("Error menampilkan notifikasi:", error);
+    return false;
   }
 }
 
-// Tambahkan fungsi untuk memeriksa preferensi
 function isNotificationEnabled() {
   return notificationPreference.enabled;
 }
