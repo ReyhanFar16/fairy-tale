@@ -22,6 +22,7 @@ function updateAuthUI() {
         <li><a href="#/add" class="nav-link">Add Story</a></li>
         <li><a href="#/stories" class="nav-link">Stories</a></li>
         <li><a href="#/map" class="nav-link">Map</a></li>
+        <li><a href="#/favorites" class="nav-link">Favorites</a></li>
         <li>
           <a href="#" class="nav-link" id="logout-link">Logout</a>
         </li>
@@ -178,7 +179,23 @@ async function checkNotificationSubscriptionStatus() {
       return false;
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    // Add a timeout promise to prevent indefinite waiting
+    const timeoutPromise = new Promise((resolve) => {
+      setTimeout(() => resolve(null), 3000); // 3 second timeout
+    });
+
+    // Use Promise.race to implement a timeout
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      timeoutPromise,
+    ]);
+
+    // If timeout won or registration failed, return false
+    if (!registration) {
+      console.warn("Service worker registration timed out or failed");
+      return false;
+    }
+
     const subscription = await registration.pushManager.getSubscription();
     return !!subscription;
   } catch (error) {

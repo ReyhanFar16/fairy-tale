@@ -1,6 +1,7 @@
 class StoryDetailPage {
   #presenter;
   #container;
+  #isFavorite = false;
 
   constructor() {
     this.#container = document.createElement("div");
@@ -55,6 +56,15 @@ class StoryDetailPage {
               
               <div class="story-actions">
                 <a href="#/stories" class="btn btn-secondary">Back to Stories</a>
+                <button id="favorite-btn" class="btn ${
+                  this.#isFavorite ? "btn-success" : "btn-primary"
+                }">
+                  ${
+                    this.#isFavorite
+                      ? '<i class="fas fa-heart"></i> Added to Favorites'
+                      : '<i class="far fa-heart"></i> Add to Favorites'
+                  }
+                </button>
               </div>
             </div>
           </div>
@@ -64,6 +74,14 @@ class StoryDetailPage {
         setTimeout(() => {
           this.#initMap(story);
         }, 100);
+      }
+
+      // Add event listener to favorite button
+      const favoriteBtn = this.#container.querySelector("#favorite-btn");
+      if (favoriteBtn) {
+        favoriteBtn.addEventListener("click", () => {
+          this.#toggleFavorite(story);
+        });
       }
     } else {
       this.#container.innerHTML = `
@@ -75,6 +93,60 @@ class StoryDetailPage {
     }
 
     return this.#container;
+  }
+
+  // New method to toggle favorite status
+  async #toggleFavorite(story) {
+    const favoriteBtn = this.#container.querySelector("#favorite-btn");
+    if (favoriteBtn) {
+      favoriteBtn.disabled = true;
+
+      try {
+        if (this.#isFavorite) {
+          // Remove from favorites
+          await this.#presenter.removeFromFavorites();
+          this.#isFavorite = false;
+          favoriteBtn.className = "btn btn-primary";
+          favoriteBtn.innerHTML =
+            '<i class="far fa-heart"></i> Add to Favorites';
+          this.showNotification("Removed from favorites");
+        } else {
+          // Add to favorites
+          await this.#presenter.addToFavorites();
+          this.#isFavorite = true;
+          favoriteBtn.className = "btn btn-success";
+          favoriteBtn.innerHTML =
+            '<i class="fas fa-heart"></i> Added to Favorites';
+          this.showNotification("Added to favorites");
+        }
+      } catch (error) {
+        this.showNotification("Error updating favorites", "error");
+      } finally {
+        favoriteBtn.disabled = false;
+      }
+    }
+  }
+
+  // Set favorite status (called from presenter)
+  setFavoriteStatus(isFavorite) {
+    this.#isFavorite = isFavorite;
+  }
+
+  // Show notification for user feedback
+  showNotification(message, type = "success") {
+    const notificationContainer = document.createElement("div");
+    notificationContainer.className = `notification ${type}`;
+    notificationContainer.textContent = message;
+
+    document.body.appendChild(notificationContainer);
+
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notificationContainer.classList.add("hide");
+      setTimeout(() => {
+        document.body.removeChild(notificationContainer);
+      }, 300);
+    }, 3000);
   }
 
   #formatDate(dateString) {

@@ -6,6 +6,7 @@ import LoginPage from "../pages/auth/login-page.js";
 import RegisterPage from "../pages/auth/register-page.js";
 import StoryMapPage from "../pages/story-map/story-map-page.js";
 import StoryDetailPage from "../pages/story/story-detail-page.js";
+import FavoritesPage from "../pages/favorites/favorites-page.js";
 
 //* --- Presenters --- */
 import HomePresenter from "../presenters/home-presenter.js";
@@ -15,6 +16,7 @@ import LoginPresenter from "../presenters/login-presenter.js";
 import RegisterPresenter from "../presenters/register-presenter.js";
 import StoryMapPresenter from "../presenters/story-map-presenter.js";
 import StoryDetailPresenter from "../presenters/story-detail-presenter.js";
+import FavoritesPresenter from "../presenters/favorites-presenter.js";
 
 const routes = {
   "/": () => {
@@ -110,6 +112,18 @@ const routes = {
     }, 0);
 
     return storyMapPage;
+  },
+
+  "/favorites": () => {
+    const favoritesPage = new FavoritesPage();
+    const favoritesPresenter = new FavoritesPresenter(favoritesPage);
+    favoritesPage.setPresenter(favoritesPresenter);
+
+    setTimeout(() => {
+      favoritesPresenter.init();
+    }, 0);
+
+    return favoritesPage;
   },
 };
 
