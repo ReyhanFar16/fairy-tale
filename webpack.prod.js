@@ -28,4 +28,8 @@ module.exports = merge(config, {
   optimization: {
     minimizer: [new CssMinimizerPlugin()],
   },
+  stats: {
+    children: true, // Tambahkan ini untuk melihat error detail
+    errorDetails: true,
+  },
 });

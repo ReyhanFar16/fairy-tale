@@ -13,18 +13,18 @@ import "./nav.js";
 
 async function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      console.log(
-        "Service Worker berhasil didaftarkan dengan scope:",
-        registration.scope
-      );
-      return registration;
-    } catch (error) {
-      console.error("Gagal mendaftarkan Service Worker:", error);
-      return null;
-    }
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register(new URL("sw.bundle.js", window.location.origin).pathname)
+        .then((registration) => {
+          console.log("SW registered:", registration);
+        })
+        .catch((error) => {
+          console.log("SW registration failed:", error);
+        });
+    });
   }
+
   return null;
 }
 
