@@ -25,9 +25,14 @@
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.1",
     "webpack-merge": "^6.0.1",
+    "workbox-precaching": "^7.3.0",
     "workbox-webpack-plugin": "^7.3.0"
   },
   "dependencies": {
-    "idb": "^8.0.3"
+    "idb": "^8.0.3",
+    "workbox-cacheable-response": "^7.3.0",
+    "workbox-expiration": "^7.3.0",
+    "workbox-routing": "^7.3.0",
+    "workbox-strategies": "^7.3.0"
   }
 }
